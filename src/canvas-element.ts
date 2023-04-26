@@ -10,12 +10,19 @@ export class CanvasElement extends LitElement {
 
 	@query('canvas') public canvasEl: HTMLCanvasElement;
 
-	public override async connectedCallback() {
+	public override connectedCallback() {
 		super.connectedCallback();
-		await this.updateComplete;
-		this.canvasEl.width = this.offsetWidth;
-		this.canvasEl.height = this.offsetHeight;
-		drawQuadtree(this.canvasEl);
+		window.addEventListener('resize', this.resizeCanvas);
+		this.updateComplete.then(()=>{
+			this.canvasEl.width = 512;
+			this.canvasEl.height = 512;
+			drawQuadtree(this.canvasEl);
+		});
+	}
+
+	public override disconnectedCallback() {
+		super.disconnectedCallback();
+		window.removeEventListener('resize', this.resizeCanvas);
 	}
 
 	protected override render(): unknown {
@@ -24,12 +31,19 @@ export class CanvasElement extends LitElement {
 		`;
 	}
 
+	private resizeCanvas = ()=> {
+		this.style.setProperty('height', this.offsetWidth + 'px');
+	};
+
 	public static override styles = css`
 		:host {
 			border: 1px solid black;
 			display: grid;
-			height: 800px;
 			overflow: hidden;
+			min-width: 512px;
+			min-height: 512px;
+			max-height: 1024px;
+			max-width: 1024px;
 		}
 		canvas {
 			height: 100%;

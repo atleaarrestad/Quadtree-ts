@@ -1,14 +1,14 @@
+import { createNoise2D } from 'simplex-noise';
+
 import { Quadtree, Rectangle } from './quadtree.js';
 
-const quad = new Quadtree(new Rectangle({ x: 0, y: 0 }, 512), 1);
+const dimension = 1024;
+const quad = new Quadtree(new Rectangle({ x: 0, y: 0 }, dimension), 1);
+quad.populateWithPerlinNoise(dimension, .54);
 
+//for (let i = 0; i < 150; i++)
+//	quad.insert({ x: Math.random() * 512, y: Math.random() * 512 });
 
-for (let index = 0; index < 150; index++)
-	quad.insert({ x: Math.random() * 512, y: Math.random() * 512 });
-
-
-console.log(quad);
-let length = 0;
 
 export const drawQuadtree = (canvas: HTMLCanvasElement) => {
 	const ctx = canvas.getContext('2d')!;
