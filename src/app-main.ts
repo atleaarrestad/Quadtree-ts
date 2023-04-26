@@ -5,6 +5,7 @@ import { customElement } from 'lit/decorators/custom-element.js';
 import { CanvasControls } from './canvas-controls.js';
 import { CanvasElement } from './canvas-element.js';
 
+
 CanvasControls;
 CanvasElement;
 
@@ -28,6 +29,7 @@ export class AppMain extends LitElement {
 
 	protected override render(): unknown {
 		return html`
+			<h2 style="text-align: center;">Quad tree visualizer</h2>
 			<canvas-element></canvas-element>
 			<canvas-controls .canvas=${ this.canvasQry }></canvas-controls>
 		`;

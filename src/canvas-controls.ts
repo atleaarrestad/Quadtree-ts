@@ -3,15 +3,17 @@ import { property, query } from 'lit/decorators.js';
 import { customElement } from 'lit/decorators/custom-element.js';
 
 import { CanvasElement } from './canvas-element.js';
-
+import { dimension, populateWithNoise, populateWithPerlinNoise, resetTree } from './quadtree-helper.js';
 
 @customElement('canvas-controls')
 export class CanvasControls extends LitElement {
 
 	@property({ type: Object }) public canvas?: CanvasElement;
-	@query('#noise-button') public noiseButton: HTMLButtonElement;
-
-	@query('#random-button') public randomButton: HTMLButtonElement;
+	@query('#clear-button') public clearButton: HTMLButtonElement;
+	@query('#perlin-noise-button') public perlinButton: HTMLButtonElement;
+	@query('#random-noise-button') public randomButton: HTMLButtonElement;
+	@query('#capacity-slider') public capacitySlider: HTMLInputElement;
+	@query('#capacity-text') public capacityText: HTMLSpanElement;
 
 
 	public override async connectedCallback() {
@@ -25,15 +27,23 @@ export class CanvasControls extends LitElement {
 
 	protected override render(): unknown {
 		return html`
-			<button type="button" id="#noise-button">yoyo</button>
-			<button type="button" id="#random-button" @click=${ this.applyNoise }>yoyo</button>
-			<h1>sjiggelige h1</h1>
+			<div class="flex-box">
+				<button style="flex-grow:0.5;" type="button" id="#noise-button" @click=${ () => resetTree(parseInt(this.capacitySlider.value)) }>Clear Quadtree</button>
+				<div style="flex-grow:0.5;">
+					<span id = "capacity-text">Node capacity [1]</span>
+					<input type="range" min="1" max="10" value="1" id="capacity-slider" @change=${ () => this.updateCapacityText() } />
+				</div>
+				
+			</div>
+			
+			<button type="button" id="#perlin-noise-button" @click=${ () => populateWithPerlinNoise(dimension, .54) }>Add perlin noise</button>
+			<button type="button" id="#random-noise-button" @click=${ () => populateWithNoise(50) }>Add random noise</button>
 		`;
 	}
 
-	private applyNoise = ()=> {
-		console.log(this.canvas);
-	};
+	private updateCapacityText() {
+		this.capacityText.textContent = `Node capacity [${ this.capacitySlider.value }]`;
+	}
 
 	public static override styles = css`
 		:host {
@@ -42,7 +52,13 @@ export class CanvasControls extends LitElement {
 			overflow: hidden;
 		}
 
-		
+		.flex-box{
+			display: flex;
+			flex-direction: row;
+			flex-wrap: nowrap;
+			flex-grow: 1;
+			justify-content: center;
+		}
 	`;
 
 }
