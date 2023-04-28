@@ -3,12 +3,15 @@ import { property, query } from 'lit/decorators.js';
 import { customElement } from 'lit/decorators/custom-element.js';
 
 import { CanvasElement } from './canvas-element.js';
-import { dimension, populateWithNoise, populateWithPerlinNoise, resetTree } from './quadtree-helper.js';
+import { Quadtree } from './quadtree.js';
+import { populateWithNoise, populateWithPerlinNoise, resetTree } from './quadtree-helper.js';
 
 @customElement('canvas-controls')
 export class CanvasControls extends LitElement {
 
 	@property({ type: Object }) public canvas?: CanvasElement;
+	@property({ type: Number }) private dimension: number;
+	@property({ type: Quadtree }) public quad: Quadtree;
 	@query('#clear-button') public clearButton: HTMLButtonElement;
 	@query('#perlin-noise-button') public perlinButton: HTMLButtonElement;
 	@query('#random-noise-button') public randomButton: HTMLButtonElement;
@@ -28,7 +31,7 @@ export class CanvasControls extends LitElement {
 	protected override render(): unknown {
 		return html`
 			<div class="flex-box">
-				<button style="flex-grow:0.5;" type="button" id="#noise-button" @click=${ () => resetTree(parseInt(this.capacitySlider.value)) }>Clear Quadtree</button>
+			<button style="flex-grow:0.5;" type="button" id="#clear-button" @click=${ () => this.dispatchQuadReset(this.dimension, parseInt(this.capacitySlider.value)) }>Clear Quadtree</button>
 				<div style="flex-grow:0.5;">
 					<span id = "capacity-text">Node capacity [1]</span>
 					<input type="range" min="1" max="10" value="1" id="capacity-slider" @change=${ () => this.updateCapacityText() } />
@@ -36,8 +39,8 @@ export class CanvasControls extends LitElement {
 				
 			</div>
 			
-			<button type="button" id="#perlin-noise-button" @click=${ () => populateWithPerlinNoise(dimension, .54) }>Add perlin noise</button>
-			<button type="button" id="#random-noise-button" @click=${ () => populateWithNoise(50) }>Add random noise</button>
+			<button type="button" id="#perlin-noise-button" @click=${ () => populateWithPerlinNoise(this.quad, this.dimension, .55) }>Add perlin noise</button>
+			<button type="button" id="#random-noise-button" @click=${ () => populateWithNoise(this.quad, 50) }>Add random noise</button>
 		`;
 	}
 
@@ -45,11 +48,16 @@ export class CanvasControls extends LitElement {
 		this.capacityText.textContent = `Node capacity [${ this.capacitySlider.value }]`;
 	}
 
+	private dispatchQuadReset(dimension: number, nodeCapacity: number) {
+		this.dispatchEvent(new CustomEvent('reset-quad', { bubbles: true, detail: { dimension: dimension, nodeCapacity: nodeCapacity } }));
+	}
+
 	public static override styles = css`
 		:host {
 			border: 1px solid black;
 			display: grid;
 			overflow: hidden;
+			//block-size: fit-content;
 		}
 
 		.flex-box{
@@ -58,6 +66,9 @@ export class CanvasControls extends LitElement {
 			flex-wrap: nowrap;
 			flex-grow: 1;
 			justify-content: center;
+		}
+		button {
+			//max-height: 24px;
 		}
 	`;
 

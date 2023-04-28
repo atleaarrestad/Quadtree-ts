@@ -1,8 +1,8 @@
-import { css, CSSResultGroup, html, LitElement } from 'lit';
+import { css, html, LitElement } from 'lit';
 import { query } from 'lit/decorators.js';
 import { customElement } from 'lit/decorators/custom-element.js';
 
-import { drawQuadtree, insertPoint } from './quadtree-helper.js';
+import { insertPoint } from './quadtree-helper.js';
 
 
 @customElement('canvas-element')
@@ -16,8 +16,6 @@ export class CanvasElement extends LitElement {
 		this.updateComplete.then(()=>{
 			this.canvasEl.width = 512;
 			this.canvasEl.height = 512;
-			drawQuadtree(this.canvasEl);
-			this.canvasEl.addEventListener('click', (e) => { insertPoint(e.pageX - this.canvasEl.offsetLeft, e.pageY - this.canvasEl.offsetTop); });
 		});
 	}
 
