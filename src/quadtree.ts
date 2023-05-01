@@ -2,25 +2,25 @@ import { createNoise2D } from 'simplex-noise';
 
 export class Quadtree {
 
-	private points: Array<Point> = new Array<Point>();
-	private pointCount = 0;
-	private hasChildren = false;
+	public points: Array<Point> = new Array<Point>();
+	public hasChildren = false;
+	public hasChangedValue = true;
 
 	public northWest: Quadtree;
 	public northEast: Quadtree;
 	public southWest: Quadtree;
 	public southEast: Quadtree;
 
-	constructor(private boundary: Rectangle, public readonly nodeCapacity: number = 4) {}
+	constructor(public readonly boundary: Rectangle, public readonly nodeCapacity: number = 4) {}
 
 	public insert(point: Point) {
 		if (!this.boundary.containsPoint(point))
 			return false;
 
 
-		if (!this.hasChildren && (this.pointCount < this.nodeCapacity)) {
+		if (!this.hasChildren && (this.points.length < this.nodeCapacity) || this.hasHitRecursionLimit()) {
 			this.points.push(point);
-			this.pointCount += 1;
+			this.hasChangedValue = true;
 
 			return true;
 		}
@@ -64,6 +64,7 @@ export class Quadtree {
 		this.points.forEach(element => {
 			this.insert(element);
 		});
+		this.points.length = 0;
 
 		return true;
 	}
@@ -85,35 +86,14 @@ export class Quadtree {
 		}
 	}
 
+	public hasHitRecursionLimit() {
+		return (this.boundary.width < 2);
+	}
+
 	public queryRange(range: Rectangle) {
 
 	}
 
-	public draw(ctx: CanvasRenderingContext2D, thickness = 1, recursiondepth = 0) {
-		//source - over;
-		ctx.lineWidth = thickness;
-		ctx.globalCompositeOperation = 'source-over';
-		ctx.strokeRect(this.boundary.origin.x, this.boundary.origin.y, this.boundary.width, this.boundary.width);
-		ctx.globalCompositeOperation = 'multiply';
-		ctx.fillStyle = `rgb(255,55,55, ${ recursiondepth * 0.1 })`;
-		ctx.fillRect(this.boundary.origin.x, this.boundary.origin.y, this.boundary.width, this.boundary.width);
-		ctx.globalCompositeOperation = 'source-over';
-		ctx.fillStyle = 'yellow';
-		ctx.fill();
-		this.points.forEach((point) =>{
-			ctx.beginPath();
-			ctx.arc(point.x, point.y, 4, 0, 2 * Math.PI);
-			ctx.stroke();
-		});
-
-		//ctx.fillRect(this.boundary.origin.x, this.boundary.origin.y, this.boundary.width, this.boundary.width);
-		if (this.hasChildren) {
-			this.northWest.draw(ctx, thickness, recursiondepth + 1);
-			this.northEast.draw(ctx, thickness, recursiondepth + 1);
-			this.southWest.draw(ctx, thickness, recursiondepth + 1);
-			this.southEast.draw(ctx, thickness, recursiondepth + 1);
-		}
-	}
 
 }
 type Point = {

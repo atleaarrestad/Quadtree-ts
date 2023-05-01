@@ -2,9 +2,6 @@ import { css, html, LitElement } from 'lit';
 import { query } from 'lit/decorators.js';
 import { customElement } from 'lit/decorators/custom-element.js';
 
-import { insertPoint } from './quadtree-helper.js';
-
-
 @customElement('canvas-element')
 export class CanvasElement extends LitElement {
 
