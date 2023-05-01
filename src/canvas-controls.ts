@@ -49,7 +49,7 @@ export class CanvasControls extends LitElement {
 			</div>
 			
 			<button type="button" id="#clear-button" @click=${ () => this.dispatchQuadReset(this.dimension, parseInt(this.capacitySlider.value)) }>Clear Quadtree</button>
-			<button type="button" id="#perlin-noise-button" @click=${ () => populateWithPerlinNoise(this.quad, .55) }>Add perlin noise</button>
+			<button type="button" id="#perlin-noise-button" @click=${ () => populateWithPerlinNoise(this.quad, .55, 16, 10) }>Add perlin noise</button>
 			<button type="button" id="#random-noise-button" @click=${ () => populateWithNoise(this.quad, 50) }>Add random noise</button>
 		`;
 	}

@@ -4,14 +4,15 @@ export class Quadtree {
 
 	public points: Array<Point> = new Array<Point>();
 	public hasChildren = false;
-	public hasChangedValue = true;
+	public requiresRepaint = true;
+	private parent: Quadtree;
 
 	public northWest: Quadtree;
 	public northEast: Quadtree;
 	public southWest: Quadtree;
 	public southEast: Quadtree;
 
-	constructor(public readonly boundary: Rectangle, public readonly nodeCapacity: number = 4) {}
+	constructor(public readonly boundary: Rectangle, public readonly nodeCapacity: number = 4, parent?: Quadtree) {}
 
 	public insert(point: Point) {
 		if (!this.boundary.containsPoint(point))
@@ -20,7 +21,8 @@ export class Quadtree {
 
 		if (!this.hasChildren && (this.points.length < this.nodeCapacity) || this.hasHitRecursionLimit()) {
 			this.points.push(point);
-			this.hasChangedValue = true;
+			if (this.parent)
+				this.parent.requiresRepaint = true;
 
 			return true;
 		}
@@ -73,10 +75,10 @@ export class Quadtree {
 		if (!this.hasChildren) {
 			let x = this.boundary.origin.x;
 			let y = this.boundary.origin.y;
-			this.northWest = new Quadtree(new Rectangle({ x: x, y: y }, this.boundary.width / 2), this.nodeCapacity);
-			this.northEast = new Quadtree(new Rectangle({ x: x + Math.floor(this.boundary.width / 2), y: y }, this.boundary.width / 2), this.nodeCapacity);
-			this.southWest = new Quadtree(new Rectangle({ x: x, y: y + Math.floor(this.boundary.width / 2) }, this.boundary.width / 2), this.nodeCapacity);
-			this.southEast = new Quadtree(new Rectangle({ x: x + Math.floor(this.boundary.width / 2), y: y + Math.floor(this.boundary.width / 2) }, this.boundary.width / 2),  this.nodeCapacity);
+			this.northWest = new Quadtree(new Rectangle({ x: x, y: y }, this.boundary.width / 2), this.nodeCapacity, this);
+			this.northEast = new Quadtree(new Rectangle({ x: x + Math.floor(this.boundary.width / 2), y: y }, this.boundary.width / 2), this.nodeCapacity, this);
+			this.southWest = new Quadtree(new Rectangle({ x: x, y: y + Math.floor(this.boundary.width / 2) }, this.boundary.width / 2), this.nodeCapacity, this);
+			this.southEast = new Quadtree(new Rectangle({ x: x + Math.floor(this.boundary.width / 2), y: y + Math.floor(this.boundary.width / 2) }, this.boundary.width / 2),  this.nodeCapacity, this);
 			this.hasChildren = true;
 
 			return true;
@@ -96,7 +98,7 @@ export class Quadtree {
 
 
 }
-type Point = {
+export type Point = {
 	x: number;
 	y: number;
 }

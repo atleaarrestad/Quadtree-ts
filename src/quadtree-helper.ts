@@ -1,6 +1,6 @@
 import { createNoise2D } from 'simplex-noise';
 
-import { Quadtree } from './quadtree.js';
+import { Point, Quadtree } from './quadtree.js';
 
 const ticks: Array<number> = [];
 export let fps = 0;
@@ -12,15 +12,32 @@ export const calculateFPS = () =>{
 	fps = ticks.length;
 };
 
-export const populateWithPerlinNoise = (quad: Quadtree, cutoff: number) => {
+export const populateWithPerlinNoise = (quad: Quadtree, cutoff: number, every_n_pixels: number, maxDeviation: number) => {
 	let dimension = quad.boundary.width;
+	let finalX: number;
+	let finalY: number;
+	(every_n_pixels < 1) ? every_n_pixels = 1 : Math.floor(every_n_pixels);
+
 	const noise2D = createNoise2D();
 
-	for (let x = 0; x < dimension; x += 16) {
-		for (let y = 0; y < dimension; y += 16) {
+	for (let x = 0; x < dimension; x += every_n_pixels) {
+		for (let y = 0; y < dimension; y += every_n_pixels) {
 			let noise = noise2D(x / dimension, y / dimension);
-			if (noise > cutoff)
-				quad.insert({ x, y });
+			if (noise > cutoff) {
+				finalX = (Math.round(Math.random() * (maxDeviation * 2)) - maxDeviation) + x;
+				finalY = (Math.round(Math.random() * (maxDeviation * 2)) - maxDeviation) + y;
+
+				if (finalX > dimension)
+					finalX = dimension;
+				if (finalX < 0)
+					finalX = 0;
+				if (finalY > dimension)
+					finalY = dimension;
+				if (finalY < 0)
+					finalY = 0;
+
+				quad.insert({ x: finalX, y: finalY });
+			}
 		}
 	}
 };
@@ -43,12 +60,15 @@ export const drawQuadtree = (quad: Quadtree, canvas: HTMLCanvasElement, drawBbox
 
 		const ctx = canvas.getContext('2d')!;
 		ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+
+
 		if (drawBbox)
 			drawQuadOutline(quad, ctx);
 		if (drawHeatMap)
 			drawQuadHeatMap(quad, ctx, 0);
 		if (drawPoints)
 			drawQuadPoints(quad, ctx);
+
 		if (drawFPS)
 			calculateFPS();
 
@@ -63,6 +83,7 @@ const drawQuadOutline = (quad: Quadtree, ctx: CanvasRenderingContext2D, thicknes
 	ctx.lineWidth = thickness;
 	ctx.globalCompositeOperation = 'source-over';
 	ctx.strokeRect(quad.boundary.origin.x, quad.boundary.origin.y, quad.boundary.width, quad.boundary.width);
+
 	if (quad.hasChildren && !quad.hasHitRecursionLimit()) {
 		drawQuadOutline(quad.northWest, ctx, thickness);
 		drawQuadOutline(quad.northEast, ctx, thickness);
