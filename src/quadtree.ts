@@ -5,24 +5,32 @@ export class Quadtree {
 	public points: Array<Point> = new Array<Point>();
 	public hasChildren = false;
 	public requiresRepaint = true;
-	private parent: Quadtree;
+	public childRequiresRepaint = false;
+	private parent?: Quadtree;
 
 	public northWest: Quadtree;
 	public northEast: Quadtree;
 	public southWest: Quadtree;
 	public southEast: Quadtree;
 
-	constructor(public readonly boundary: Rectangle, public readonly nodeCapacity: number = 4, parent?: Quadtree) {}
+	constructor(public readonly boundary: Rectangle, public readonly nodeCapacity: number = 4, parent?: Quadtree) {
+		if (parent)
+			this.parent = parent;
+	}
 
 	public insert(point: Point) {
 		if (!this.boundary.containsPoint(point))
 			return false;
 
 
-		if (!this.hasChildren && (this.points.length < this.nodeCapacity) || this.hasHitRecursionLimit()) {
+		if ((!this.hasChildren && (this.points.length < this.nodeCapacity)) || this.hasHitRecursionLimit()) {
 			this.points.push(point);
 			if (this.parent)
-				this.parent.requiresRepaint = true;
+				this.parent.childRequiresRepaint = true;
+
+			this.requiresRepaint = true;
+
+			console.log('setting repaint true');
 
 			return true;
 		}
@@ -32,18 +40,29 @@ export class Quadtree {
 			this.shakeNode();
 		}
 
-
 		//Insert point to children if no space in this node
-		if (this.northWest.insert(point))
-			return true;
-		if (this.northEast.insert(point))
-			return true;
-		if (this.southWest.insert(point))
-			return true;
-		if (this.southEast.insert(point))
-			return true;
+		if (this.northWest.insert(point)) {
+			this.childRequiresRepaint = true;
 
-		return false;
+			return true;
+		}
+		if (this.northEast.insert(point)) {
+			this.childRequiresRepaint = true;
+
+			return true;
+		}
+		if (this.southWest.insert(point)) {
+			this.childRequiresRepaint = true;
+
+			return true;
+		}
+		if (this.southEast.insert(point)) {
+			this.childRequiresRepaint = true;
+
+			return true;
+		}
+
+		return true;
 	}
 
 	public populateWithPerlinNoise(dimension: number, cutoff: number) {

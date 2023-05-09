@@ -58,16 +58,11 @@ export const drawQuadtree = (quad: Quadtree, canvas: HTMLCanvasElement, drawBbox
 		if (stop)
 			return;
 
+		console.log('repainting');
 		const ctx = canvas.getContext('2d')!;
-		ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+		//ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+		draw_quad(quad, ctx, 1, drawBbox, drawPoints, drawHeatMap);
 
-
-		if (drawBbox)
-			drawQuadOutline(quad, ctx);
-		if (drawHeatMap)
-			drawQuadHeatMap(quad, ctx, 0);
-		if (drawPoints)
-			drawQuadPoints(quad, ctx);
 
 		if (drawFPS)
 			calculateFPS();
@@ -79,17 +74,32 @@ export const drawQuadtree = (quad: Quadtree, canvas: HTMLCanvasElement, drawBbox
 	return () => stop = true;
 };
 
+const draw_quad = (quad: Quadtree, ctx: CanvasRenderingContext2D, thickness = 1, drawBbox = true, drawPoints = true, drawHeatMap = true) =>{
+	console.log(quad.requiresRepaint);
+	if (quad.requiresRepaint) {
+		quad.requiresRepaint = false;
+		ctx.clearRect(quad.boundary.origin.x, quad.boundary.origin.y, quad.boundary.width, quad.boundary.width);// mulig eg må cleara thicknessen på borderen og!
+		if (drawBbox)
+			drawQuadOutline(quad, ctx);
+		if (drawHeatMap)
+			drawQuadHeatMap(quad, ctx, 0);
+		if (drawPoints)
+			drawQuadPoints(quad, ctx);
+	}
+	if (quad.childRequiresRepaint) {
+		quad.childRequiresRepaint = false;
+		draw_quad(quad.northWest, ctx, 1, drawBbox, drawPoints, drawHeatMap);
+		draw_quad(quad.northEast, ctx, 1, drawBbox, drawPoints, drawHeatMap);
+		draw_quad(quad.southWest, ctx, 1, drawBbox, drawPoints, drawHeatMap);
+		draw_quad(quad.southEast, ctx, 1, drawBbox, drawPoints, drawHeatMap);
+	}
+};
+
 const drawQuadOutline = (quad: Quadtree, ctx: CanvasRenderingContext2D, thickness = 1) =>{
 	ctx.lineWidth = thickness;
 	ctx.globalCompositeOperation = 'source-over';
 	ctx.strokeRect(quad.boundary.origin.x, quad.boundary.origin.y, quad.boundary.width, quad.boundary.width);
-
-	if (quad.hasChildren && !quad.hasHitRecursionLimit()) {
-		drawQuadOutline(quad.northWest, ctx, thickness);
-		drawQuadOutline(quad.northEast, ctx, thickness);
-		drawQuadOutline(quad.southWest, ctx, thickness);
-		drawQuadOutline(quad.southEast, ctx, thickness);
-	}
+	console.log('drawing recursively');
 };
 
 const drawQuadHeatMap = (quad: Quadtree, ctx: CanvasRenderingContext2D, alpha = 0) =>{
@@ -97,15 +107,9 @@ const drawQuadHeatMap = (quad: Quadtree, ctx: CanvasRenderingContext2D, alpha = 
 	ctx.fillStyle = `rgb(255,55,55, ${ alpha })`;
 	alpha += .05;
 	ctx.fillRect(quad.boundary.origin.x, quad.boundary.origin.y, quad.boundary.width, quad.boundary.width);
-	if (quad.hasChildren && !quad.hasHitRecursionLimit()) {
-		drawQuadHeatMap(quad.northWest, ctx, alpha);
-		drawQuadHeatMap(quad.northEast, ctx, alpha);
-		drawQuadHeatMap(quad.southWest, ctx, alpha);
-		drawQuadHeatMap(quad.southEast, ctx, alpha);
-	}
 };
 
-const drawQuadPoints = (quad: Quadtree, ctx: CanvasRenderingContext2D, radius = 32) =>{
+const drawQuadPoints = (quad: Quadtree, ctx: CanvasRenderingContext2D, radius = 8) =>{
 	ctx.globalCompositeOperation = 'source-over';
 	ctx.fillStyle = 'yellow';
 
@@ -115,10 +119,4 @@ const drawQuadPoints = (quad: Quadtree, ctx: CanvasRenderingContext2D, radius = 
 		ctx.stroke();
 		ctx.fill();
 	});
-	if (quad.hasChildren && !quad.hasHitRecursionLimit()) {
-		drawQuadPoints(quad.northWest, ctx, radius * .75);
-		drawQuadPoints(quad.northEast, ctx, radius * .75);
-		drawQuadPoints(quad.southWest, ctx, radius * .75);
-		drawQuadPoints(quad.southEast, ctx, radius * .75);
-	}
 };
