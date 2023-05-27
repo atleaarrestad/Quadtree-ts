@@ -11,6 +11,7 @@
 	"author": "Atle Aarrestad",
 	"license": "MIT",
 	"dependencies": {
+		"@vaadin/router": "^1.7.5",
 		"lit": "^2.7.2",
 		"simplex-noise": "^4.0.1",
 		"tslib": "^2.4.1"

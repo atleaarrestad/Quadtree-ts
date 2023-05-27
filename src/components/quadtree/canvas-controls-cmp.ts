@@ -2,9 +2,10 @@ import { css, html, LitElement } from 'lit';
 import { property, query } from 'lit/decorators.js';
 import { customElement } from 'lit/decorators/custom-element.js';
 
-import { CanvasElement } from './canvas-element.js';
-import { Quadtree } from './quadtree.js';
-import { populateWithNoise, populateWithPerlinNoise } from './quadtree-helper.js';
+import { Quadtree } from '../../quadtree.js';
+import { populateWithNoise, populateWithPerlinNoise } from '../../quadtree-helper.js';
+import { sharedStyles } from '../../styles/styles.js';
+import { CanvasElement } from './canvas-element-cmp.js';
 
 @customElement('canvas-controls')
 export class CanvasControls extends LitElement {
@@ -75,7 +76,8 @@ export class CanvasControls extends LitElement {
 		this.dispatchEvent(new CustomEvent('draw-points', { bubbles: true, detail: { state: state  } }));
 	}
 
-	public static override styles = css`
+	public static override styles = [
+		sharedStyles, css`
 		:host {
 			border: 1px solid black;
 			display: grid;
@@ -93,6 +95,7 @@ export class CanvasControls extends LitElement {
 			max-height: 36px;
 		}
 	
-	`;
+	`,
+	];
 
 }

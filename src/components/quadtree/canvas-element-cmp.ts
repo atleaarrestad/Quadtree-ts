@@ -2,7 +2,9 @@ import { css, html, LitElement } from 'lit';
 import { query } from 'lit/decorators.js';
 import { customElement } from 'lit/decorators/custom-element.js';
 
-@customElement('canvas-element')
+import { sharedStyles } from '../../styles/styles.js';
+
+@customElement('canvas-element-cmp')
 export class CanvasElement extends LitElement {
 
 	@query('canvas') public canvasEl: HTMLCanvasElement;
@@ -32,7 +34,8 @@ export class CanvasElement extends LitElement {
 	};
 
 
-	public static override styles = css`
+	public static override styles = [
+		sharedStyles, css`
 		:host {
 			border: 1px solid black;
 			display: grid;
@@ -46,6 +49,7 @@ export class CanvasElement extends LitElement {
 			height: 100%;
 			width: 100%;
 		}
-	`;
+	`,
+	];
 
 }

@@ -8,17 +8,19 @@
 	<title>Document</title>
 	<script type="module" src="./src/index.ts"></script>
 	<style>
-		body {
-			padding: 0px;
-			margin: 0px;
-			display: grid;
-			height: 100dvh;
+		* {
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+		line-height: 1.5;
 		}
 	</style>
 </head>
 
+
 <body>
-	<app-main></app-main>
+	<nav-bar-cmp></nav-bar-cmp>
+	<div id="outlet"></div>
 </body>
 
 </html>

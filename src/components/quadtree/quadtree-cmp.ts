@@ -1,19 +1,19 @@
-import { stat } from 'fs';
 import { css, html, LitElement } from 'lit';
 import { property, query, state } from 'lit/decorators.js';
 import { customElement } from 'lit/decorators/custom-element.js';
 
-import { CanvasControls } from './canvas-controls.js';
-import { CanvasElement } from './canvas-element.js';
-import { Quadtree, Rectangle } from './quadtree.js';
-import { drawQuadtree, fps, insertPoint } from './quadtree-helper.js';
+import { Quadtree, Rectangle } from '../../quadtree.js';
+import { drawQuadtree, fps, insertPoint } from '../../quadtree-helper.js';
+import { sharedStyles } from '../../styles/styles.js';
+import { CanvasControls } from './canvas-controls-cmp.js';
+import { CanvasElement } from './canvas-element-cmp.js';
 
 
 CanvasControls;
 CanvasElement;
 
-@customElement('app-main')
-export class AppMain extends LitElement {
+@customElement('aa-quadtree')
+export class QuadTree extends LitElement {
 
 	@property()
 	public fpsCounter = 0;
@@ -39,7 +39,7 @@ export class AppMain extends LitElement {
 	public override async connectedCallback() {
 		super.connectedCallback();
 		await this.updateComplete;
-		this.canvasQry = this.renderRoot.querySelector('canvas-element')!;
+		this.canvasQry = this.renderRoot.querySelector('canvas-element-cmp')!;
 		this.restartDraw();
 		this.timer = setInterval(() => {
 			this.fpsCounter = fps;
@@ -63,7 +63,7 @@ export class AppMain extends LitElement {
 									@draw-heatmap=${ this.setHeatmap.bind(this) }
 									@draw-points=${ this.setPoints.bind(this) }
 				></canvas-controls>
-				<canvas-element @click=${ this.onCanvasClick.bind(this) } ></canvas-element>
+				<canvas-element-cmp @click=${ this.onCanvasClick.bind(this) } ></canvas-element-cmp>
 			</div>	
 			
 		`;
@@ -100,7 +100,8 @@ export class AppMain extends LitElement {
 		this.stopDraw = drawQuadtree(this.quad, this.canvasQry.canvasEl, this.bboxState, this.pointsState, this.heatmapState, true);
 	}
 
-	public static override styles = css`
+	public static override styles = [
+		sharedStyles, css`
 		:host {
 			display: grid;
 			overflow: hidden;
@@ -114,6 +115,7 @@ export class AppMain extends LitElement {
 			flex-grow: 1;
 			justify-content: center;
 		}
-	`;
+	`,
+	];
 
 }
