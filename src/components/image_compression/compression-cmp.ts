@@ -9,6 +9,8 @@ import { buffer } from 'stream/consumers';
 import { sharedStyles } from '../../styles/styles.js';
 import { compress, computeCompressedSizeInBytes, computeHowManyIntegers, uncompress } from './fast-int-compression.js';
 import { ImageInput } from './image-input-cmp.js';
+import { ImageData, Quadtree2, Rectangle } from './quadtree2.js';
+import { addImageToQuadtree, blendColours, compressQuadtree, getColourDifference } from './quadtree2-helper.js';
 
 ImageInput;
 @customElement('aa-compression')
@@ -23,17 +25,6 @@ export class Compression extends LitElement {
 	@property()
 	public images: File[];
 
-	@property()
-	public redArray: number[];
-
-	@property()
-	public greenArray: number[];
-
-	@property()
-	public blueArray: number[];
-
-	@property()
-	public alphaArray: number[];
 
 	public override async connectedCallback() {
 		super.connectedCallback();
@@ -73,9 +64,17 @@ export class Compression extends LitElement {
 			return;
 
 		this.images = e.detail as File[];
-		console.log(this.images);
+		this.compressImageSequence();
+	}
 
-		this.extractDataFromImage();
+	private async compressImageSequence() {
+		let data: globalThis.ImageData = await this.extractDataFromImage();
+		let quadtree = new Quadtree2(new Rectangle({ x: 0, y: 0 }, data.width));
+		addImageToQuadtree(data, quadtree);
+		compressQuadtree(quadtree, 5);
+
+
+		console.log(quadtree);
 	}
 
 	private async extractDataFromImage() {
@@ -85,25 +84,8 @@ export class Compression extends LitElement {
 		this.inputCanvas.height = image.height;
 		ctx.drawImage(image, 0, 0);
 
-		let data = ctx.getImageData(0, 0, this.inputCanvas.width, this.inputCanvas.height);
-		console.log({
-			imageHeight:      data.height,
-			imageWidth:       data.width,
-			colorspace:       data.colorSpace,
-			arrayLength:      data.data.length,
-			calculatedLength: (image.width * 4 * image.height),
-
-		});
-
-		let rowLength = image.width * 4;
-		let columnHeight = image.height;
-		for (let column = 0; column < columnHeight; column++) {
-			for (let row = 0; row < rowLength; row++)
-				continue;
-		}
-		console.log('yo i done');
+		return ctx.getImageData(0, 0, this.inputCanvas.width, this.inputCanvas.height);
 	}
-
 
 	public static override styles = [
 		sharedStyles, css`

@@ -1,35 +1,28 @@
 
+
 export class Quadtree2 {
 
-	public points: Array<Point> = new Array<Point>();
+	public data?: ImageData;
 	public hasChildren = false;
-	public requiresRepaint = true;
-	public childRequiresRepaint = false;
-	private parent?: Quadtree2;
+	public parent?: Quadtree2;
 
-	public northWest: Quadtree2;
-	public northEast: Quadtree2;
-	public southWest: Quadtree2;
-	public southEast: Quadtree2;
+	public northWest?: Quadtree2;
+	public northEast?: Quadtree2;
+	public southWest?: Quadtree2;
+	public southEast?: Quadtree2;
 
-	constructor(public readonly boundary: Rectangle, public readonly nodeCapacity: number = 4, parent?: Quadtree2) {
+	constructor(public readonly boundary: Rectangle, parent?: Quadtree2) {
 		if (parent)
 			this.parent = parent;
 	}
 
-	public insert(point: Point) {
-		if (!this.boundary.containsPoint(point))
+	public insert(data: ImageData) {
+		if (!this.boundary.containsPoint(data.point))
 			return false;
 
 
-		if ((!this.hasChildren && (this.points.length < this.nodeCapacity)) || this.hasHitRecursionLimit()) {
-			this.points.push(point);
-			if (this.parent)
-				this.parent.childRequiresRepaint = true;
-
-			this.requiresRepaint = true;
-
-			console.log('setting repaint true');
+		if (!this.hasChildren && !this.data) {
+			this.data = data;
 
 			return true;
 		}
@@ -40,51 +33,50 @@ export class Quadtree2 {
 		}
 
 		//Insert point to children if no space in this node
-		if (this.northWest.insert(point)) {
-			this.childRequiresRepaint = true;
-
+		if (this.northWest!.insert(data))
 			return true;
-		}
-		if (this.northEast.insert(point)) {
-			this.childRequiresRepaint = true;
 
+		if (this.northEast!.insert(data))
 			return true;
-		}
-		if (this.southWest.insert(point)) {
-			this.childRequiresRepaint = true;
 
+		if (this.southWest!.insert(data))
 			return true;
-		}
-		if (this.southEast.insert(point)) {
-			this.childRequiresRepaint = true;
 
+		if (this.southEast!.insert(data))
 			return true;
-		}
+
 
 		return true;
 	}
 
-	//pushed all data in this node into the children instead
+	//push data in this node into the children instead
 	public shakeNode() {
 		if (!this.hasChildren && !this.subdivide())
 			return false;
 
-		this.points.forEach(element => {
-			this.insert(element);
-		});
-		this.points.length = 0;
+		this.insert(this.data!);
+		this.data = undefined;
 
 		return true;
 	}
 
+	public clearChildren() {
+		this.hasChildren = false;
+		this.northWest = undefined;
+		this.northEast = undefined;
+		this.southWest = undefined;
+		this.southEast = undefined;
+	}
+
+	//create children
 	public subdivide(): boolean {
 		if (!this.hasChildren) {
 			let x = this.boundary.origin.x;
 			let y = this.boundary.origin.y;
-			this.northWest = new Quadtree2(new Rectangle({ x: x, y: y }, this.boundary.width / 2), this.nodeCapacity, this);
-			this.northEast = new Quadtree2(new Rectangle({ x: x + Math.floor(this.boundary.width / 2), y: y }, this.boundary.width / 2), this.nodeCapacity, this);
-			this.southWest = new Quadtree2(new Rectangle({ x: x, y: y + Math.floor(this.boundary.width / 2) }, this.boundary.width / 2), this.nodeCapacity, this);
-			this.southEast = new Quadtree2(new Rectangle({ x: x + Math.floor(this.boundary.width / 2), y: y + Math.floor(this.boundary.width / 2) }, this.boundary.width / 2),  this.nodeCapacity, this);
+			this.northWest = new Quadtree2(new Rectangle({ x: x, y: y }, this.boundary.width / 2), this);
+			this.northEast = new Quadtree2(new Rectangle({ x: x + Math.floor(this.boundary.width / 2), y: y }, this.boundary.width / 2), this);
+			this.southWest = new Quadtree2(new Rectangle({ x: x, y: y + Math.floor(this.boundary.width / 2) }, this.boundary.width / 2), this);
+			this.southEast = new Quadtree2(new Rectangle({ x: x + Math.floor(this.boundary.width / 2), y: y + Math.floor(this.boundary.width / 2) }, this.boundary.width / 2), this);
 			this.hasChildren = true;
 
 			return true;
@@ -102,12 +94,16 @@ export class Quadtree2 {
 export type Point = {
 	x: number;
 	y: number;
+}
+export type RGB = {
+	red: number;
+	green: number;
+	blue: number;
+}
+export type ImageData = {
 	width: number;
-	rgba: {
-		red: number,
-		green: number,
-		blue: number
-	}
+	point: Point;
+	color: RGB;
 }
 
 
