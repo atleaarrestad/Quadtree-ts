@@ -11,6 +11,7 @@ specifiers:
   eslint-plugin-import: ^2.27.5
   eslint-plugin-lit: ^1.8.2
   eslint-plugin-simple-import-sort: ^10.0.0
+  fastintcompression: ^0.1.0
   globby: ^13.1.4
   lit: ^2.7.2
   simplex-noise: ^4.0.1
@@ -22,6 +23,7 @@ specifiers:
 
 dependencies:
   '@vaadin/router': 1.7.5
+  fastintcompression: 0.1.0
   lit: 2.7.2
   simplex-noise: 4.0.1
   tslib: 2.5.0
@@ -1409,6 +1411,10 @@ packages:
   /fast-levenshtein/2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
     dev: true
+
+  /fastintcompression/0.1.0:
+    resolution: {integrity: sha512-RlsnlUkjFqEHWENduHN2IoefCv7EaYdENnHvpo5MimPjHjv7U9TDCBpEKOu3a9spt9944yAhAmqU9VpOW0lnEA==}
+    dev: false
 
   /fastq/1.15.0:
     resolution: {integrity: sha512-wBrocU2LCXXa+lWBt8RoIRD89Fi8OdABODa/kEnyeyjS5aZO5/GNvI5sEINADqP/h8M29UHTHUb53sUu5Ihqdw==}

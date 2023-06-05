@@ -9,37 +9,38 @@ import { sharedStyles } from '../../styles/styles.js';
 export class ImageInput extends LitElement {
 
 	@property()
-	public images: any[] = [];
+	public images: File[] = [];
 
 	public override connectedCallback(): void {
 		super.connectedCallback();
+		this.renderRoot.addEventListener('dragover', (event) => { event.preventDefault(); });
+		this.renderRoot.querySelector('.image-container')?.addEventListener('drop', (e) => { this.addFileFromDrop(e as DragEvent); });
 	}
 
 	protected override render() {
 		return html`
-		<div class="image-container">
+		<div class="image-container" @drop=${ this.addFileFromDrop.bind(this) }>
 			<p>Drop image here</p>
 			<input @change=${ this.addFileFromInput.bind(this) } type="file" class="file" multiple accept="image/jpeg, image/png, image/jpg">
-			<output></output>
 		</div>
+		<output></output>
 		`;
 	}
 
-	private addFileFromInput = (input: HTMLInputElement) => {
-		console.log('adding files from input: ');
-		console.log(input.files);
+	private addFileFromInput = (e: Event) => {
+		let input: HTMLInputElement = e.currentTarget as object as HTMLInputElement;
 		let fileArray = input.files;
+
 		if (!fileArray)
 			return;
 
 		for (let index = 0; index < fileArray.length; index++)
-			this.images.push(fileArray[index]);
-		this.displayImages();
+			this.images.push(fileArray[index] as File);
+
+		this.imageArrayChanged();
 	};
 
 	private addFileFromDrop = (e: DragEvent) =>{
-		console.log('adding files from drop: ');
-		console.log(e);
 		e.preventDefault();
 		let files = e.dataTransfer?.files;
 		if (!files)
@@ -48,28 +49,36 @@ export class ImageInput extends LitElement {
 		for (let i = 0; i < files.length; i++) {
 			if (files[i] && files[i]?.type.match('image')) {
 				if (this.images.every(image => image.name !== files![i]!.name))
-					this.images.push(files[i]);
+					this.images.push(files[i] as File);
 			}
 		}
-		this.displayImages();
+		this.imageArrayChanged();
 	};
 
-	private displayImages = () => {
+	private displayImages() {
 		let images = '';
 		this.images.forEach((image, index) => {
 			images += `<div class="image">
-						<img src="${ URL.createObjectURL(image) }" alt="image">
-						<span onclick="deleteImage(${ index })">&times;</span>
-					  </div>`;
+					  <img src="${ URL.createObjectURL(image) }" alt="image">
+					</div>`;
 		});
-		let output = this.querySelector('output');
+		let output = this.renderRoot?.querySelector('output');
 		if (output)
 			output.innerHTML = images;
-	};
+	}
+
+	private imageArrayChanged() {
+		this.dispatchEvent(new CustomEvent('image-array-changed', {
+			bubbles:  true,
+			composed: true,
+			detail:   this.images,
+		}));
+		this.displayImages();
+	}
 
 	private deleteImage = (index: number) => {
+		//unfinished
 		this.images.splice(index, 1);
-		this.displayImages();
 	};
 
 	public static override styles = [
@@ -91,10 +100,8 @@ export class ImageInput extends LitElement {
 			font-size: 18px;
 			border: 3px solid #111;
 		}
-		div{
-			background-color: red;
-		}
-		
+
+
 
 		`,
 	];

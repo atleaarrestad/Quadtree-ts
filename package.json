@@ -12,6 +12,7 @@
 	"license": "MIT",
 	"dependencies": {
 		"@vaadin/router": "^1.7.5",
+		"fastintcompression": "^0.1.0",
 		"lit": "^2.7.2",
 		"simplex-noise": "^4.0.1",
 		"tslib": "^2.4.1"
