@@ -1,4 +1,7 @@
 
+import { arrayBuffer } from 'stream/consumers';
+
+import { QuadTree } from '../quadtree/quadtree-cmp.js';
 import { ImageData, Point, Quadtree2, RGB } from './quadtree2.js';
 
 export const addImageToQuadtree = (data: globalThis.ImageData, quadtree: Quadtree2) =>{
@@ -20,26 +23,23 @@ export const addImageToQuadtree = (data: globalThis.ImageData, quadtree: Quadtre
 	}
 };
 
-export const compressQuadtree = async (quadtree: Quadtree2, maxColorDelta: number) => {
+export const compressQuadtree = async (quadtree: Quadtree2, maxColorDelta: number, recursion = 0) => {
 	//console.log(`compressing quadtree with maxColorDelta: ${ maxColorDelta }`);
 
 	//send ud recursively på 4 children og vent på promise resolve før prøva og merga!!
-
-	Promise.all([
-		//lots of promises
-	]);
-
-	// if this is the parent of the most inner node
-	if (quadtree.hasChildren && !quadtree.northWest!.hasChildren) {
+	if (quadtree.hasChildren && quadtree.northWest!.hasChildren) {
+		Promise.all([
+			compressQuadtree(quadtree.northWest!, maxColorDelta, recursion + 1),
+			compressQuadtree(quadtree.northEast!, maxColorDelta, recursion + 1),
+			compressQuadtree(quadtree.southWest!, maxColorDelta, recursion + 1),
+			compressQuadtree(quadtree.southEast!, maxColorDelta, recursion + 1),
+		]);
+	}
+	if (quadtree.hasChildren && (quadtree.northWest!.data && quadtree.northEast!.data && quadtree.southWest!.data && quadtree.southEast!.data))
 		tryMergeChildren(quadtree, maxColorDelta);
-	}
 
-	else {
-		compressQuadtree(quadtree.northWest!, maxColorDelta);
-		compressQuadtree(quadtree.northEast!, maxColorDelta);
-		compressQuadtree(quadtree.southWest!, maxColorDelta);
-		compressQuadtree(quadtree.southEast!, maxColorDelta);
-	}
+
+	return;
 };
 
 const tryMergeChildren = (quadtree: Quadtree2, maxColorDelta: number) => {
@@ -65,8 +65,11 @@ const tryMergeChildren = (quadtree: Quadtree2, maxColorDelta: number) => {
 		};
 		quadtree.clearChildren();
 		quadtree.data = data;
-		//console.log('merged successfully');
+
+		return true;
 	}
+
+	return false;
 };
 
 export const getColourDifference = (colors: RGB[]) => {
@@ -109,4 +112,38 @@ export const blendColours = (colors: RGB[]) =>{
 		green: Math.round(green),
 		blue:  Math.round(blue),
 	};
+};
+
+export const quadtreeToImageData = (quadtree: Quadtree2, width: number, height: number): globalThis.ImageData => {
+	let buffer = new ArrayBuffer(width * 4 * height);
+	let view = new DataView(buffer);
+	extractPixelData(quadtree, buffer, view);
+
+	return new globalThis.ImageData(new Uint8ClampedArray(buffer), 1024, 1024);
+};
+
+const extractPixelData = (quadtree: Quadtree2, buffer: ArrayBuffer, view: DataView) => {
+	if (quadtree.hasChildren) {
+		extractPixelData(quadtree.northWest!, buffer, view);
+		extractPixelData(quadtree.northEast!, buffer, view);
+		extractPixelData(quadtree.southWest!, buffer, view);
+		extractPixelData(quadtree.southEast!, buffer, view);
+	}
+	if (!quadtree.data)
+		return;
+	if ((quadtree.data.width! ** 2) > 255)
+		console.log(`extracting total: ${ quadtree.data.width! ** 2 } pixels}`);
+
+	//dis wrong lmao
+	let baseY = (quadtree.data.point.y!) * quadtree.data.width!;
+	let baseX = quadtree.data.point.x!;
+	let base = baseX + baseY;
+	for (let column = 0; column < quadtree.data!.width; column++) {
+		for (let row = 0; row < quadtree.data!.width * 4; row += 4) {
+			view.setInt8(base + (column * quadtree.data.width!) + row, quadtree.data!.color.red);
+			view.setInt8(base + (column * quadtree.data.width!) + row + 1, quadtree.data!.color.green);
+			view.setInt8(base + (column * quadtree.data.width!) + row + 2, quadtree.data!.color.blue);
+			view.setInt8(base + (column * quadtree.data.width!) + row + 3, 255);
+		}
+	}
 };

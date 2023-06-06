@@ -10,7 +10,7 @@ import { sharedStyles } from '../../styles/styles.js';
 import { compress, computeCompressedSizeInBytes, computeHowManyIntegers, uncompress } from './fast-int-compression.js';
 import { ImageInput } from './image-input-cmp.js';
 import { ImageData, Quadtree2, Rectangle } from './quadtree2.js';
-import { addImageToQuadtree, blendColours, compressQuadtree, getColourDifference } from './quadtree2-helper.js';
+import { addImageToQuadtree, blendColours, compressQuadtree, getColourDifference, quadtreeToImageData } from './quadtree2-helper.js';
 
 ImageInput;
 @customElement('aa-compression')
@@ -72,6 +72,9 @@ export class Compression extends LitElement {
 		let quadtree = new Quadtree2(new Rectangle({ x: 0, y: 0 }, data.width));
 		addImageToQuadtree(data, quadtree);
 		compressQuadtree(quadtree, 5);
+		this.outputCanvas.width = 1024;
+		this.outputCanvas.height = 1024;
+		this.outputCanvas.getContext('2d')?.putImageData(quadtreeToImageData(quadtree, 1024, 1024), 0, 0);
 
 
 		console.log(quadtree);
