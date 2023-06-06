@@ -117,33 +117,32 @@ export const blendColours = (colors: RGB[]) =>{
 export const quadtreeToImageData = (quadtree: Quadtree2, width: number, height: number): globalThis.ImageData => {
 	let buffer = new ArrayBuffer(width * 4 * height);
 	let view = new DataView(buffer);
-	extractPixelData(quadtree, buffer, view);
+	extractPixelData(quadtree, view);
+	console.log(buffer.byteLength);
 
 	return new globalThis.ImageData(new Uint8ClampedArray(buffer), 1024, 1024);
 };
 
-const extractPixelData = (quadtree: Quadtree2, buffer: ArrayBuffer, view: DataView) => {
+const extractPixelData = (quadtree: Quadtree2, view: DataView) => {
 	if (quadtree.hasChildren) {
-		extractPixelData(quadtree.northWest!, buffer, view);
-		extractPixelData(quadtree.northEast!, buffer, view);
-		extractPixelData(quadtree.southWest!, buffer, view);
-		extractPixelData(quadtree.southEast!, buffer, view);
+		extractPixelData(quadtree.northWest!, view);
+		extractPixelData(quadtree.northEast!, view);
+		extractPixelData(quadtree.southWest!, view);
+		extractPixelData(quadtree.southEast!, view);
 	}
 	if (!quadtree.data)
 		return;
-	if ((quadtree.data.width! ** 2) > 255)
-		console.log(`extracting total: ${ quadtree.data.width! ** 2 } pixels}`);
 
 	//dis wrong lmao
-	let baseY = (quadtree.data.point.y!) * quadtree.data.width!;
-	let baseX = quadtree.data.point.x!;
-	let base = baseX + baseY;
 	for (let column = 0; column < quadtree.data!.width; column++) {
+		let baseY = (quadtree.data.point.y!) * 1024 * 4;
+		let baseX = quadtree.data.point.x! * 4;
+		let base = baseX + baseY;
 		for (let row = 0; row < quadtree.data!.width * 4; row += 4) {
-			view.setInt8(base + (column * quadtree.data.width!) + row, quadtree.data!.color.red);
-			view.setInt8(base + (column * quadtree.data.width!) + row + 1, quadtree.data!.color.green);
-			view.setInt8(base + (column * quadtree.data.width!) + row + 2, quadtree.data!.color.blue);
-			view.setInt8(base + (column * quadtree.data.width!) + row + 3, 255);
+			view.setInt8(base + (column * 1024 * 4) + row, quadtree.data!.color.red);
+			view.setInt8(base + (column * 1024 * 4) + row + 1, quadtree.data!.color.green);
+			view.setInt8(base + (column * 1024 * 4) + row + 2, quadtree.data!.color.blue);
+			view.setInt8(base + (column * 1024 * 4) + row + 3, 255);
 		}
 	}
 };
