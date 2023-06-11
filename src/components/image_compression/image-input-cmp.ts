@@ -22,11 +22,6 @@ export class ImageInput extends LitElement {
 		<div class="image-container" @drop=${ this.addFileFromDrop.bind(this) }>
 			<p>[Drop image here]</p>
 			<input @change=${ this.addFileFromInput.bind(this) } type="file" class="file" accept="image/jpeg, image/png, image/jpg">
-			${ this.getImagefolderFilenames().map(i => html`
-				<select  name="image-select" id="image-select">
-					<option value="${ i }">doggo</option>
-				</select>
-			`) }
 		</div>
 		
 		<output></output>
