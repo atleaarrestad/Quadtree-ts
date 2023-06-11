@@ -9,7 +9,7 @@ import { sharedStyles } from '../../styles/styles.js';
 export class ImageInput extends LitElement {
 
 	@property()
-	public images: File[] = [];
+	public image?: File;
 
 	public override connectedCallback(): void {
 		super.connectedCallback();
@@ -20,9 +20,15 @@ export class ImageInput extends LitElement {
 	protected override render() {
 		return html`
 		<div class="image-container" @drop=${ this.addFileFromDrop.bind(this) }>
-			<p>Drop image here</p>
-			<input @change=${ this.addFileFromInput.bind(this) } type="file" class="file" multiple accept="image/jpeg, image/png, image/jpg">
+			<p>[Drop image here]</p>
+			<input @change=${ this.addFileFromInput.bind(this) } type="file" class="file" accept="image/jpeg, image/png, image/jpg">
+			${ this.getImagefolderFilenames().map(i => html`
+				<select  name="image-select" id="image-select">
+					<option value="${ i }">doggo</option>
+				</select>
+			`) }
 		</div>
+		
 		<output></output>
 		`;
 	}
@@ -31,55 +37,40 @@ export class ImageInput extends LitElement {
 		let input: HTMLInputElement = e.currentTarget as object as HTMLInputElement;
 		let fileArray = input.files;
 
-		if (!fileArray)
+		if (!fileArray || !fileArray[0])
 			return;
 
-		for (let index = 0; index < fileArray.length; index++)
-			this.images.push(fileArray[index] as File);
-
-		this.imageArrayChanged();
+		this.image = fileArray[0] as File;
+		this.imageChanged();
 	};
 
 	private addFileFromDrop = (e: DragEvent) =>{
 		e.preventDefault();
 		let files = e.dataTransfer?.files;
-		if (!files)
+		if (!files || !files[0])
 			return;
+		if (files[0]?.type.match('image'))
+			this.image = files[0] as File;
 
-		for (let i = 0; i < files.length; i++) {
-			if (files[i] && files[i]?.type.match('image')) {
-				if (this.images.every(image => image.name !== files![i]!.name))
-					this.images.push(files[i] as File);
-			}
-		}
-		this.imageArrayChanged();
+
+		this.imageChanged();
 	};
 
-	private displayImages() {
-		let images = '';
-		this.images.forEach((image, index) => {
-			images += `<div class="image">
-					  <img src="${ URL.createObjectURL(image) }" alt="image">
-					</div>`;
-		});
-		let output = this.renderRoot?.querySelector('output');
-		if (output)
-			output.innerHTML = images;
-	}
-
-	private imageArrayChanged() {
-		this.dispatchEvent(new CustomEvent('image-array-changed', {
+	private imageChanged() {
+		this.dispatchEvent(new CustomEvent('image-changed', {
 			bubbles:  true,
 			composed: true,
-			detail:   this.images,
+			detail:   this.image,
 		}));
-		this.displayImages();
 	}
 
-	private deleteImage = (index: number) => {
-		//unfinished
-		this.images.splice(index, 1);
+	private deleteImage = () => {
+		this.image = undefined;
 	};
+
+	private getImagefolderFilenames(): Array<string> {
+		return [ 'src/components/image_compression/images/1-original.jpg' ];
+	}
 
 	public static override styles = [
 		sharedStyles, css`
@@ -87,18 +78,13 @@ export class ImageInput extends LitElement {
 
 		}
 		.image-container{
-			background-color: #ddd;
-			width: 300px;
+			width: 100%;
 			height: 150px;
-			border: 2px solid #aaa;
-			border-radius: 16px;
 			display: grid;
 			place-items: center;
 		}
 		.image-container:hover{
-			opacity: .55;
-			font-size: 18px;
-			border: 3px solid #111;
+			background-color: #bbb;
 		}
 
 

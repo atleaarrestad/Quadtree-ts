@@ -14,13 +14,46 @@
 		box-sizing: border-box;
 		line-height: 1.5;
 		}
+
+		html{
+			height: 100%;
+		}
+
+		body{
+			height: 100%;
+		}
+		.main{
+			display: flex;
+			flex-flow: column;
+			height: 100%;
+		}
+
+		.header{
+			flex: 0 1 auto;
+		}
+
+		.content{
+			background-color: wheat;
+			flex: 1 1 auto;
+			display: grid;
+		}
+		
+		#footer{
+			flex: 0 1 0px;
+			background-color: blueviolet;
+		}
+			
+		
 	</style>
 </head>
 
 
 <body>
-	<nav-bar-cmp></nav-bar-cmp>
-	<div id="outlet"></div>
+	<div class="main">
+		<nav-bar-cmp class="header"></nav-bar-cmp>
+		<div id="outlet" class="content"></div>
+		<div id="footer"></div>
+	</div>
 </body>
 
 </html>
